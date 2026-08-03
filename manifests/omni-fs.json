@@ -1,0 +1,37 @@
+{
+  "id": "omni-fs",
+  "name": "Omni Filesystem",
+  "version": "1.0.0",
+  "defaultRoot": "/var/www/html/billybissic.com/omni-fs",
+  "variables": {
+    "user": "demo"
+  },
+  "directories": [
+    "System/Applications",
+    "System/Modules",
+    "System/Registry",
+    "System/Themes",
+    "System/Wallpapers",
+    "Users/${user}/Desktop",
+    "Users/${user}/Documents",
+    "Users/${user}/Downloads",
+    "Users/${user}/Media/Music",
+    "Users/${user}/Media/Pictures",
+    "Users/${user}/Media/Videos",
+    "Users/${user}/Projects",
+    "Users/${user}/Settings",
+    "Shared",
+    "Mounts",
+    "Temp"
+  ],
+  "files": [
+    {
+      "path": "Users/${user}/Documents/README.txt",
+      "content": "Welcome to the Omni demo filesystem.\\n\\nThis structure was prepared by Captain Stager."
+    },
+    {
+      "path": "System/Registry/README.txt",
+      "content": "Omni Registry\\n\\nApplication and module registry metadata will live here."
+    }
+  ]
+}

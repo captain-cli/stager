@@ -1,0 +1,19 @@
+{
+  "id": "stager",
+  "name": "Stager",
+  "version": "0.1.0",
+  "icon": "S",
+  "category": "Captain",
+  "entry": {
+    "type": "host-command",
+    "command": "stager"
+  },
+  "capabilities": [
+    "filesystem.plan",
+    "filesystem.scaffold"
+  ],
+  "defaultArguments": [
+    "--output",
+    "json"
+  ]
+}

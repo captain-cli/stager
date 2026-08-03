@@ -1,0 +1,54 @@
+{
+  "id": "omni-shell-site",
+  "name": "Omni Shell Website and Filesystem",
+  "version": "1.0.0",
+  "defaultRoot": "/var/www/html/omni-shell",
+  "variables": {
+    "user": "demo"
+  },
+  "directories": [
+    "site",
+    "site/assets",
+
+    "omni-fs/System/Applications",
+    "omni-fs/System/Modules",
+    "omni-fs/System/Registry",
+    "omni-fs/System/Themes",
+    "omni-fs/System/Wallpapers",
+
+    "omni-fs/Users/${user}/Desktop",
+    "omni-fs/Users/${user}/Documents",
+    "omni-fs/Users/${user}/Downloads",
+    "omni-fs/Users/${user}/Media/Music",
+    "omni-fs/Users/${user}/Media/Pictures",
+    "omni-fs/Users/${user}/Media/Videos",
+    "omni-fs/Users/${user}/Projects",
+    "omni-fs/Users/${user}/Settings",
+
+    "omni-fs/Shared",
+    "omni-fs/Mounts",
+    "omni-fs/Temp",
+
+    "config",
+    "logs",
+    "backups"
+  ],
+  "files": [
+    {
+      "path": "omni-fs/Users/${user}/Documents/README.txt",
+      "content": "Welcome to the Omni filesystem.\n\nThis storage is managed through the Omni filesystem service and is not part of the public website."
+    },
+    {
+      "path": "omni-fs/System/Registry/README.txt",
+      "content": "Omni Registry\n\nApplication and module registry metadata will live here."
+    },
+    {
+      "path": "site/.htaccess",
+      "content": "Options -Indexes\nDirectoryIndex index.html\n"
+    },
+    {
+      "path": "config/README.txt",
+      "content": "Omni Shell runtime and deployment configuration."
+    }
+  ]
+}

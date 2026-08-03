@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "captain-stager"
+version = "0.1.0"
+description = "Captain Stager prepares filesystem layouts from declarative manifests."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Billy Bissic" }]
+license = { text = "Proprietary" }
+dependencies = [
+  "captain-core>=0.1,<0.2"
+]
+
+[project.scripts]
+stager = "captain_stager.cli:main"
+captain-stager = "captain_stager.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
