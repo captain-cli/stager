@@ -1,5 +1,6 @@
 import re
-from .errors import ManifestError
+from captain_core.errors import ManifestError
+
 _PATTERN=re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 def substitute(value: str, variables: dict[str,str], field_name: str) -> str:
     def repl(m):

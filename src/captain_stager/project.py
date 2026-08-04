@@ -3,8 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from .errors import ManifestError
-
+from captain_core.errors import ManifestError
 
 CAPTAIN_DIRECTORY = "captain"
 

@@ -3,10 +3,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from .errors import ManifestError
-from .executor import execute_plan
+from captain_core.errors import ManifestError
 from captain_core.manifests import load_tool_manifest
-from .manifest import load_manifest_document
+
+from .executor import execute_plan
+from .manifest import parse_manifest_document
 from .models import ExecutionReport, Manifest
 from .planner import build_plan
 
@@ -17,14 +18,14 @@ def resolve_root(
 ) -> Path:
     configured_root = (
         root_override
-        or os.environ.get("OMNI_FS_ROOT")
+        or os.environ.get("STAGER_ROOT")
         or manifest.default_root
     )
 
     if not configured_root:
         raise ManifestError(
             "No target root configured. Use --root, "
-            "OMNI_FS_ROOT, or manifest.defaultRoot."
+            "STAGER_ROOT, or manifest.defaultRoot."
         )
 
     return Path(configured_root).expanduser().resolve()
@@ -36,10 +37,12 @@ def load_resolved_manifest(reference: str) -> Manifest:
         tool="stager",
     )
 
-    return load_manifest_document(
+    return parse_manifest_document(
         resolved.document,
+        header=resolved.header,
         source_path=resolved.path,
     )
+
 
 def validate(reference: str) -> Manifest:
     return load_resolved_manifest(reference)

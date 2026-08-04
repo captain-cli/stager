@@ -1,30 +1,21 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from .errors import ManifestError
+from captain_core.errors import ManifestError
+from captain_core.models import ManifestHeader
 from .models import FileSpec, Manifest
 from .paths import validate_relative_path
 from .variables import substitute
 
 
-def load_manifest_document(
+def parse_manifest_document(
     data: dict[str, Any],
     *,
+    header: ManifestHeader,
     source_path: Path,
 ) -> Manifest:
-    header = data.get("header")
-
-    if not isinstance(header, dict):
-        raise ManifestError(
-            'Manifest property "header" must be an object.'
-        )
-
-    manifest_id = header["id"]
-    name = header["name"]
-    version = header["manifestVersion"]
 
     default_root = data.get("defaultRoot")
 
@@ -144,9 +135,9 @@ def load_manifest_document(
         )
 
     return Manifest(
-        manifest_id,
-        name,
-        version,
+        header.id,
+        header.name,
+        header.manifest_version,
         default_root.strip()
         if isinstance(default_root, str)
         else None,

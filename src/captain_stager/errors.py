@@ -1,4 +1,5 @@
-class StagerError(Exception):
+from captain_core.errors import CaptainCoreError
+
+
+class StagerError(CaptainCoreError):
     """Base error for expected Stager failures."""
-class ManifestError(StagerError):
-    """Raised when a manifest is invalid."""

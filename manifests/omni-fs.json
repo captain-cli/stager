@@ -1,7 +1,12 @@
 {
-  "id": "omni-fs",
-  "name": "Omni Filesystem",
-  "version": "1.0.0",
+  "header": {
+    "id": "omni-fs",
+    "name": "Omni Filesystem",
+    "tool": "stager",
+    "category": "filesystems",
+    "schemaVersion": "1.0",
+    "manifestVersion": "1.0.0"
+  },
   "defaultRoot": "./runtime/omni-fs",
   "variables": {
     "user": "demo"

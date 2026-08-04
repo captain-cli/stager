@@ -1,4 +1,5 @@
 import argparse,json,sys
+from captain_core.errors import CaptainCoreError
 from . import __version__
 from .errors import StagerError
 from .output import emit_json,print_report
@@ -25,6 +26,6 @@ def main(argv=None):
             m,root,ops=plan(args.manifest,args.root); payload={'manifestId':m.id,'root':str(root),'dryRun':True,'succeeded':True,'counts':{'planned':len(ops)},'operations':[{'kind':o.kind,'relativePath':o.relative_path,'targetPath':str(o.target_path),'status':'planned','message':None} for o in ops]}; emit_json(payload) if args.output=='json' else print_report(payload); return 0
         if args.command=='apply':
             report=apply(args.manifest,root_override=args.root,dry_run=args.dry_run,force=args.force); payload=report.to_dict(); emit_json(payload) if args.output=='json' else print_report(payload); return 0 if report.succeeded else 1
-    except StagerError as e:
+    except CaptainCoreError as e:
         emit_json({'succeeded':False,'error':str(e)}) if getattr(args,'output','text')=='json' else print(f"stager: {e}",file=sys.stderr); return 2
     return 2

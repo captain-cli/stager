@@ -2,8 +2,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from captain_stager.errors import ManifestError
-from captain_stager.manifest import load_manifest_document
+from captain_core.errors import ManifestError
+from captain_core.manifests import parse_manifest_header
+from captain_stager.manifest import parse_manifest_document
 
 
 class ManifestTests(unittest.TestCase):
@@ -32,11 +33,11 @@ class ManifestTests(unittest.TestCase):
             ]
         }
 
-        with tempfile.TemporaryDirectory() as d:
-            source = Path(d) / "m.json"
-
-            manifest = load_manifest_document(
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "m.json"
+            manifest = parse_manifest_document(
                 document,
+                header=parse_manifest_header(document),
                 source_path=source,
             )
 
@@ -44,7 +45,6 @@ class ManifestTests(unittest.TestCase):
                 manifest.directories,
                 ("Users/demo/Documents",),
             )
-
             self.assertEqual(
                 manifest.files[0].content,
                 "Hello demo",
@@ -65,11 +65,12 @@ class ManifestTests(unittest.TestCase):
             ]
         }
 
-        with tempfile.TemporaryDirectory() as d:
-            source = Path(d) / "m.json"
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "m.json"
 
             with self.assertRaises(ManifestError):
-                load_manifest_document(
+                parse_manifest_document(
                     document,
+                    header=parse_manifest_header(document),
                     source_path=source,
                 )

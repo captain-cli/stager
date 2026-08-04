@@ -1,7 +1,12 @@
 {
-  "id": "omni-shell-site",
-  "name": "Omni Shell Website and Filesystem",
-  "version": "1.0.0",
+  "header": {
+    "id": "omni-shell-site",
+    "name": "Omni Shell Website and Filesystem",
+    "tool": "stager",
+    "category": "filesystems",
+    "schemaVersion": "1.0",
+    "manifestVersion": "1.0.0"
+  },
   "defaultRoot": "/var/www/html/omni-shell",
   "variables": {
     "user": "demo"
@@ -9,13 +14,11 @@
   "directories": [
     "site",
     "site/assets",
-
     "omni-fs/System/Applications",
     "omni-fs/System/Modules",
     "omni-fs/System/Registry",
     "omni-fs/System/Themes",
     "omni-fs/System/Wallpapers",
-
     "omni-fs/Users/${user}/Desktop",
     "omni-fs/Users/${user}/Documents",
     "omni-fs/Users/${user}/Downloads",
@@ -24,11 +27,9 @@
     "omni-fs/Users/${user}/Media/Videos",
     "omni-fs/Users/${user}/Projects",
     "omni-fs/Users/${user}/Settings",
-
     "omni-fs/Shared",
     "omni-fs/Mounts",
     "omni-fs/Temp",
-
     "config",
     "logs",
     "backups"

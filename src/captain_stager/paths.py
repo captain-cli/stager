@@ -1,16 +1,20 @@
+from __future__ import annotations
+
 from pathlib import Path
-from .errors import ManifestError
+
+from captain_core.filesystem import (
+    resolve_inside_root as resolve_core_inside_root,
+    validate_relative_reference,
+)
+
 
 def validate_relative_path(value: object, field_name: str) -> str:
-    if not isinstance(value,str) or not value.strip(): raise ManifestError(f"{field_name} must be a non-empty string.")
-    candidate=value.replace("\\","/").strip()
-    if candidate.startswith("/"): raise ManifestError(f"{field_name} must be relative: {value}")
-    parts=[p for p in candidate.split("/") if p not in ("",".")]
-    if any(p==".." for p in parts): raise ManifestError(f"{field_name} escapes the scaffold root: {value}")
-    if not parts: raise ManifestError(f"{field_name} resolves to an empty path.")
-    return "/".join(parts)
+    """Validate a Stager resource path through Captain Core safety rules."""
+    relative_path = validate_relative_reference(value, field_name)  # type: ignore[arg-type]
+    return relative_path.as_posix()
+
 
 def resolve_inside_root(root: Path, relative_path: str) -> Path:
-    resolved_root=root.resolve(); target=(resolved_root/relative_path).resolve()
-    if target != resolved_root and resolved_root not in target.parents: raise ManifestError(f"Path escapes scaffold root: {relative_path}")
-    return target
+    """Resolve a validated Stager path inside the configured target root."""
+    relative = validate_relative_reference(relative_path, "resource path")
+    return resolve_core_inside_root(root, relative)
