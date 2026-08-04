@@ -2,7 +2,7 @@
   "id": "omni-fs",
   "name": "Omni Filesystem",
   "version": "1.0.0",
-  "defaultRoot": "/var/www/html/billybissic.com/omni-fs",
+  "defaultRoot": "./runtime/omni-fs",
   "variables": {
     "user": "demo"
   },
