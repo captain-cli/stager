@@ -5,5 +5,3 @@ build/
 dist/
 *.egg-info/
 runtime/
-
-.idea/
