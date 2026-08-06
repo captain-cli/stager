@@ -1,5 +1,9 @@
 # Captain Stager
 
+<p align="center">
+    <img src="./assets/stager-banner.png" alt="Captain - Captain's Stager" width="100%" />
+</p>
+
 Stop rebuilding the same environment. Describe it once. Stage it anywhere.
 
 **Manifest-driven environment staging for the Captain ecosystem.**
