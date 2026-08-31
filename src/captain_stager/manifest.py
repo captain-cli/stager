@@ -5,7 +5,7 @@ from typing import Any
 
 from captain_core.errors import ManifestError
 from captain_core.models import ManifestHeader
-from .models import FileSpec, Manifest
+from .models import CopySpec, FileSpec, Manifest
 from .paths import validate_relative_path
 from .variables import substitute
 
@@ -134,6 +134,46 @@ def parse_manifest_document(
             )
         )
 
+    raw_copies = data.get("copies", [])
+
+    if not isinstance(raw_copies, list):
+        raise ManifestError('"copies" must be an array.')
+
+    copies: list[CopySpec] = []
+
+    for index, item in enumerate(raw_copies):
+        if not isinstance(item, dict):
+            raise ManifestError(
+                f"copies[{index}] must be an object."
+            )
+
+        source = item.get("source")
+        path = item.get("path")
+        overwrite = item.get("overwrite", False)
+
+        if not isinstance(source, str) or not source.strip():
+            raise ManifestError(
+                f"copies[{index}].source must be a string."
+            )
+
+        if not isinstance(path, str) or not path.strip():
+            raise ManifestError(
+                f"copies[{index}].path must be a string."
+            )
+
+        if not isinstance(overwrite, bool):
+            raise ManifestError(
+                f"copies[{index}].overwrite must be boolean."
+            )
+
+        copies.append(
+            CopySpec(
+                source=source.strip(),
+                path=path.strip(),
+                overwrite=overwrite,
+            )
+        )
+
     return Manifest(
         header.id,
         header.name,
@@ -144,5 +184,6 @@ def parse_manifest_document(
         variables,
         tuple(dict.fromkeys(directories)),
         tuple(files),
+        tuple(copies),
         source_path,
     )

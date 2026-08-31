@@ -2,12 +2,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
-OperationKind = Literal["mkdir", "write"]
+OperationKind = Literal["mkdir", "write", "copy"]
 @dataclass(frozen=True)
 class FileSpec:
     path: str
     content: str = ""
     encoding: str = "utf-8"
+    overwrite: bool = False
+@dataclass(frozen=True)
+class CopySpec:
+    source: str
+    path: str
     overwrite: bool = False
 @dataclass(frozen=True)
 class Manifest:
@@ -18,6 +23,7 @@ class Manifest:
     variables: dict[str, str]
     directories: tuple[str, ...]
     files: tuple[FileSpec, ...]
+    copies: tuple[CopySpec, ...]
     source_path: Path
 @dataclass(frozen=True)
 class Operation:
@@ -27,6 +33,7 @@ class Operation:
     content: str | None = None
     encoding: str = "utf-8"
     overwrite: bool = False
+    source_path: Path | None = None
 @dataclass
 class OperationResult:
     kind: OperationKind
