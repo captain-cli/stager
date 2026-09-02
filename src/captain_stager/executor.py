@@ -86,22 +86,17 @@ def execute_plan(
                     )
                     continue
 
-                if not op.source_path.is_file():
+                if not op.source_path.exists():
                     report.results.append(
                         OperationResult(
                             "copy",
                             op.relative_path,
                             str(op.target_path),
                             "failed",
-                            f"Source file does not exist: {op.source_path}",
+                            f"Copy source does not exist: {op.source_path}",
                         )
                     )
                     continue
-
-                op.target_path.parent.mkdir(
-                    parents=True,
-                    exist_ok=True,
-                )
 
                 if op.target_path.exists() and not (force or op.overwrite):
                     report.results.append(
@@ -110,15 +105,48 @@ def execute_plan(
                             op.relative_path,
                             str(op.target_path),
                             "skipped",
-                            "File already exists.",
+                            "Destination already exists.",
                         )
                     )
                     continue
 
-                shutil.copy2(
-                    op.source_path,
-                    op.target_path,
-                )
+                if op.source_path.is_file():
+                    op.target_path.parent.mkdir(
+                        parents=True,
+                        exist_ok=True,
+                    )
+
+                    shutil.copy2(
+                        op.source_path,
+                        op.target_path,
+                    )
+
+                elif op.source_path.is_dir():
+                    if op.target_path.exists():
+                        shutil.rmtree(op.target_path)
+
+                    op.target_path.parent.mkdir(
+                        parents=True,
+                        exist_ok=True,
+                    )
+
+                    shutil.copytree(
+                        op.source_path,
+                        op.target_path,
+                        copy_function=shutil.copy2,
+                    )
+
+                else:
+                    report.results.append(
+                        OperationResult(
+                            "copy",
+                            op.relative_path,
+                            str(op.target_path),
+                            "failed",
+                            f"Unsupported copy source: {op.source_path}",
+                        )
+                    )
+                    continue
 
                 report.results.append(
                     OperationResult(

@@ -92,6 +92,56 @@ def test_apply_copies_existing_file(tmp_path):
     assert report.results[0].kind == "copy"
     assert report.results[0].status == "written"
 
+def test_apply_copies_directory_recursively(tmp_path):
+    source_dir = tmp_path / "runtime"
+    source_dir.mkdir()
+
+    (source_dir / "libbass.so").write_text(
+        "bass",
+        encoding="utf-8",
+    )
+
+    nested_dir = source_dir / "plugins"
+    nested_dir.mkdir()
+
+    (nested_dir / "libbassflac.so").write_text(
+        "flac",
+        encoding="utf-8",
+    )
+
+    manifest_path = write_manifest(
+        tmp_path,
+        source="runtime",
+        destination="usr/lib/vibrancy",
+    )
+
+    report = apply(manifest_path)
+
+    destination = (
+            tmp_path
+            / "output"
+            / "usr"
+            / "lib"
+            / "vibrancy"
+    )
+
+    assert report.succeeded
+
+    assert (
+                   destination
+                   / "libbass.so"
+           ).read_text(encoding="utf-8") == "bass"
+
+    assert (
+                   destination
+                   / "plugins"
+                   / "libbassflac.so"
+           ).read_text(encoding="utf-8") == "flac"
+
+    assert len(report.results) == 1
+    assert report.results[0].kind == "copy"
+    assert report.results[0].status == "written"
+
 
 def test_apply_fails_when_copy_source_does_not_exist(tmp_path):
     manifest_path = write_manifest(
@@ -106,4 +156,4 @@ def test_apply_fails_when_copy_source_does_not_exist(tmp_path):
     assert len(report.results) == 1
     assert report.results[0].kind == "copy"
     assert report.results[0].status == "failed"
-    assert "Source file does not exist" in report.results[0].message
+    assert "Copy source does not exist" in report.results[0].message
