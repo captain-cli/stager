@@ -74,3 +74,91 @@ class ManifestTests(unittest.TestCase):
                     header=parse_manifest_header(document),
                     source_path=source,
                 )
+
+    def test_parses_platform_target(self):
+        document = {
+            "header": {
+                "id": "target-test",
+                "name": "Target Test",
+                "tool": "stager",
+                "category": "filesystems",
+                "schemaVersion": "1.0",
+                "manifestVersion": "1.0.0",
+            },
+            "targets": {
+                "linux": {
+                    "defaultRoot": "/tmp/stager-linux",
+                    "variables": {
+                        "app": "vibrancy"
+                    },
+                    "directories": [
+                        "opt/${app}",
+                        "etc/${app}"
+                    ],
+                    "files": [
+                        {
+                            "path": "etc/${app}/runtime.conf",
+                            "content": "application=${app}"
+                        }
+                    ],
+                    "copies": [
+                        {
+                            "source": "bin/vibrancy",
+                            "path": "usr/bin/${app}"
+                        }
+                    ]
+                }
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "m.json"
+
+            manifest = parse_manifest_document(
+                document,
+                header=parse_manifest_header(document),
+                source_path=source,
+            )
+
+            self.assertIn(
+                "linux",
+                manifest.targets,
+            )
+
+            self.assertEqual(
+                manifest.targets["linux"].variables["app"],
+                "vibrancy",
+            )
+
+            self.assertEqual(
+                manifest.targets["linux"].default_root,
+                "/tmp/stager-linux",
+            )
+
+            self.assertEqual(
+                manifest.targets["linux"].directories,
+                (
+                    "opt/vibrancy",
+                    "etc/vibrancy",
+                ),
+            )
+
+            self.assertEqual(
+                manifest.targets["linux"].files[0].path,
+                "etc/vibrancy/runtime.conf",
+            )
+
+            self.assertEqual(
+                manifest.targets["linux"].files[0].content,
+                "application=vibrancy",
+            )
+
+            self.assertEqual(
+                manifest.targets["linux"].copies[0].source,
+                "bin/vibrancy",
+            )
+
+            self.assertEqual(
+                manifest.targets["linux"].copies[0].path,
+                "usr/bin/vibrancy",
+            )

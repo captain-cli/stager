@@ -43,32 +43,83 @@ def load_resolved_manifest(reference: str) -> Manifest:
         source_path=resolved.path,
     )
 
+def select_target(
+        manifest: Manifest,
+        target_name: str | None,
+) -> Manifest:
+    if target_name is None:
+        return manifest
+
+    target = manifest.targets.get(target_name)
+
+    if target is None:
+        available = ", ".join(sorted(manifest.targets))
+
+        if available:
+            raise ManifestError(
+                f'Unknown target "{target_name}". '
+                f"Available targets: {available}."
+            )
+
+        raise ManifestError(
+            f'Unknown target "{target_name}". '
+            "Manifest defines no targets."
+        )
+
+    return Manifest(
+        manifest.id,
+        manifest.name,
+        manifest.version,
+        target.default_root,
+        target.variables,
+        target.directories,
+        target.files,
+        target.copies,
+        {},
+        manifest.source_path,
+    )
 
 def validate(reference: str) -> Manifest:
     return load_resolved_manifest(reference)
 
 
 def plan(
-    reference: str,
-    root_override: str | None = None,
+        reference: str,
+        root_override: str | None = None,
+        target_name: str | None = None,
 ):
     manifest = load_resolved_manifest(reference)
-    root = resolve_root(manifest, root_override)
-    operations = build_plan(manifest, root)
+
+    manifest = select_target(
+        manifest,
+        target_name,
+    )
+
+    root = resolve_root(
+        manifest,
+        root_override,
+    )
+
+    operations = build_plan(
+        manifest,
+        root,
+    )
 
     return manifest, root, operations
 
 
 def apply(
-    reference: str,
-    *,
-    root_override: str | None = None,
-    dry_run: bool = False,
-    force: bool = False,
+        reference: str,
+        *,
+        root_override: str | None = None,
+        target_name: str | None = None,
+        dry_run: bool = False,
+        force: bool = False,
 ) -> ExecutionReport:
     manifest, root, operations = plan(
         reference,
         root_override,
+        target_name,
     )
 
     return execute_plan(

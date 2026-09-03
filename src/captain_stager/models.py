@@ -15,6 +15,13 @@ class CopySpec:
     path: str
     overwrite: bool = False
 @dataclass(frozen=True)
+class TargetSpec:
+    default_root: str | None = None
+    variables: dict[str, str] = field(default_factory=dict)
+    directories: tuple[str, ...] = ()
+    files: tuple[FileSpec, ...] = ()
+    copies: tuple[CopySpec, ...] = ()
+@dataclass(frozen=True)
 class Manifest:
     id: str
     name: str
@@ -24,6 +31,7 @@ class Manifest:
     directories: tuple[str, ...]
     files: tuple[FileSpec, ...]
     copies: tuple[CopySpec, ...]
+    targets: dict[str, TargetSpec]
     source_path: Path
 @dataclass(frozen=True)
 class Operation:
