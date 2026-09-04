@@ -1,8 +1,11 @@
 import json
 import tempfile
 import unittest
+import stat
 from pathlib import Path
 
+from captain_stager.executor import execute_plan
+from captain_stager.models import Operation
 from captain_stager.service import apply
 
 
@@ -63,3 +66,33 @@ class ApplyTests(unittest.TestCase):
 
             self.assertFalse(root.exists())
             self.assertEqual(report.results[0].status, "planned")
+
+    def test_apply_sets_file_mode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            root = temporary / "output"
+            target = root / "bin/example"
+
+            op = Operation(
+                kind="write",
+                relative_path="bin/example",
+                target_path=target,
+                content="hello",
+                mode=0o755,
+            )
+
+            report = execute_plan(
+                "mode-test",
+                root,
+                [op],
+            )
+
+            self.assertEqual(
+                stat.S_IMODE(target.stat().st_mode),
+                0o755,
+            )
+
+            self.assertEqual(
+                report.results[0].status,
+                "written",
+            )

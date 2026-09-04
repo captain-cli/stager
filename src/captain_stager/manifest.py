@@ -9,6 +9,29 @@ from .paths import validate_relative_path
 from .variables import substitute
 from .models import CopySpec, FileSpec, Manifest, TargetSpec
 
+def parse_mode(value) -> int | None:
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        raise ManifestError(
+            'mode must be a string such as "0755".'
+        )
+
+    try:
+        mode = int(value, 8)
+    except ValueError as exc:
+        raise ManifestError(
+            f'Invalid file mode "{value}".'
+        ) from exc
+
+    if mode < 0 or mode > 0o7777:
+        raise ManifestError(
+            f'Invalid file mode "{value}".'
+        )
+
+    return mode
+
 def parse_manifest_document(
     data: dict[str, Any],
     *,
@@ -130,6 +153,7 @@ def parse_manifest_document(
                 ),
                 encoding,
                 overwrite,
+                parse_mode(item.get("mode"))
             )
         )
 
@@ -170,6 +194,7 @@ def parse_manifest_document(
                 source=source.strip(),
                 path=path.strip(),
                 overwrite=overwrite,
+                mode=parse_mode(item.get("mode")),
             )
         )
 
@@ -350,6 +375,7 @@ def parse_manifest_document(
                     ),
                     encoding,
                     overwrite,
+                    parse_mode(item.get("mode"))
                 )
             )
 
@@ -405,6 +431,7 @@ def parse_manifest_document(
                         f'copies[{index}].path',
                     ),
                     overwrite=overwrite,
+                    mode=parse_mode(item.get("mode"))
                 )
             )
 

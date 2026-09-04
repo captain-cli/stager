@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from captain_core.models import ManifestHeader
 from captain_core.errors import ManifestError
 from captain_core.manifests import parse_manifest_header
 from captain_stager.manifest import parse_manifest_document
@@ -74,6 +75,56 @@ class ManifestTests(unittest.TestCase):
                     header=parse_manifest_header(document),
                     source_path=source,
                 )
+
+    def test_parses_file_mode(self):
+        manifest = parse_manifest_document(
+            {
+                "files": [
+                    {
+                        "path": "bin/example",
+                        "content": "hello",
+                        "mode": "0755",
+                    }
+                ]
+            },
+            header=ManifestHeader(
+                id="test",
+                name="Test Manifest",
+                tool="stager",
+                category="filesystems",
+                schema_version="1.0",
+                manifest_version="1.0.0",
+            ),
+            source_path=Path("/tmp/stager.json"),
+        )
+
+        self.assertEqual(
+            manifest.files[0].mode,
+            0o755,
+        )
+
+    def test_rejects_invalid_file_mode(self):
+        with self.assertRaises(ManifestError):
+            parse_manifest_document(
+                {
+                    "files": [
+                        {
+                            "path": "bin/example",
+                            "content": "hello",
+                            "mode": "banana",
+                        }
+                    ]
+                },
+                header=ManifestHeader(
+                    id="test",
+                    name="Test Manifest",
+                    tool="stager",
+                    category="filesystems",
+                    schema_version="1.0",
+                    manifest_version="1.0.0",
+                ),
+                source_path=Path("/tmp/stager.json"),
+            )
 
     def test_parses_platform_target(self):
         document = {

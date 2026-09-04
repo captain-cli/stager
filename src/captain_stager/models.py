@@ -6,14 +6,16 @@ OperationKind = Literal["mkdir", "write", "copy"]
 @dataclass(frozen=True)
 class FileSpec:
     path: str
-    content: str = ""
+    content: str
     encoding: str = "utf-8"
     overwrite: bool = False
+    mode: int | None = None
 @dataclass(frozen=True)
 class CopySpec:
     source: str
     path: str
     overwrite: bool = False
+    mode: int | None = None
 @dataclass(frozen=True)
 class TargetSpec:
     default_root: str | None = None
@@ -42,6 +44,7 @@ class Operation:
     encoding: str = "utf-8"
     overwrite: bool = False
     source_path: Path | None = None
+    mode: int | None = None
 @dataclass
 class OperationResult:
     kind: OperationKind
@@ -64,3 +67,4 @@ class ExecutionReport:
         counts: dict[str,int] = {}
         for r in self.results: counts[r.status] = counts.get(r.status,0)+1
         return {"manifestId":self.manifest_id,"root":self.root,"dryRun":self.dry_run,"succeeded":self.succeeded,"counts":counts,"operations":[r.to_dict() for r in self.results]}
+

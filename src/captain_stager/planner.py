@@ -10,12 +10,13 @@ def build_plan(manifest: Manifest, root: Path) -> list[Operation]:
 
     ops += [
         Operation(
-            "write",
-            f.path,
-            resolve_inside_root(root, f.path),
-            f.content,
-            f.encoding,
-            f.overwrite,
+            kind="write",
+            relative_path=f.path,
+            target_path=resolve_inside_root(root, f.path),
+            content=f.content,
+            encoding=f.encoding,
+            overwrite=f.overwrite,
+            mode=f.mode,
         )
         for f in manifest.files
     ]
@@ -27,6 +28,7 @@ def build_plan(manifest: Manifest, root: Path) -> list[Operation]:
             target_path=resolve_inside_root(root, c.path),
             overwrite=c.overwrite,
             source_path=manifest.source_path.parent / c.source,
+            mode=c.mode,
         )
         for c in manifest.copies
     ]

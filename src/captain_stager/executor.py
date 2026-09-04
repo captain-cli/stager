@@ -63,6 +63,9 @@ def execute_plan(
                     encoding=op.encoding,
                     )
 
+                if op.mode is not None:
+                    op.target_path.chmod(op.mode)
+
                 report.results.append(
                     OperationResult(
                         "write",
@@ -147,6 +150,9 @@ def execute_plan(
                         )
                     )
                     continue
+
+                if op.mode is not None:
+                    op.target_path.chmod(op.mode)
 
                 report.results.append(
                     OperationResult(

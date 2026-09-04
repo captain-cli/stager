@@ -1,5 +1,9 @@
 import json
-
+import stat
+import tempfile
+from pathlib import Path
+from captain_stager.executor import execute_plan
+from captain_stager.models import Operation
 from captain_stager.service import apply, plan, validate
 
 
@@ -157,3 +161,28 @@ def test_apply_fails_when_copy_source_does_not_exist(tmp_path):
     assert report.results[0].kind == "copy"
     assert report.results[0].status == "failed"
     assert "Copy source does not exist" in report.results[0].message
+
+
+def test_copy_applies_mode(tmp_path):
+    source = tmp_path / "source"
+    source.write_text("hello")
+
+    root = tmp_path / "root"
+    target = root / "usr/bin/example"
+
+    op = Operation(
+        kind="copy",
+        relative_path="usr/bin/example",
+        target_path=target,
+        source_path=source,
+        mode=0o755,
+    )
+
+    report = execute_plan(
+        "mode-test",
+        root,
+        [op],
+    )
+
+    assert stat.S_IMODE(target.stat().st_mode) == 0o755
+    assert report.results[0].status == "written"
