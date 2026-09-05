@@ -31,7 +31,13 @@ def execute_plan(
                 continue
 
             if op.kind == "mkdir":
-                op.target_path.mkdir(parents=True, exist_ok=True)
+                op.target_path.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
+
+                if op.mode is not None:
+                    op.target_path.chmod(op.mode)
 
                 report.results.append(
                     OperationResult(

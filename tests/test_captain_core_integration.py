@@ -13,7 +13,7 @@ from captain_core.errors import (
     ManifestOwnershipError,
 )
 from captain_stager.service import load_resolved_manifest
-
+from captain_stager.models import DirectorySpec
 
 def manifest_document(*, tool="stager", directories=None, files=None, header_patch=None):
     header = {
@@ -59,7 +59,14 @@ class CaptainCoreManifestIntegrationTests(unittest.TestCase):
             manifest = load_resolved_manifest(str(manifest_path))
 
             self.assertEqual(manifest.id, "integration-test")
-            self.assertEqual(manifest.directories, ("System/Applications",))
+            self.assertEqual(
+                manifest.directories,
+                (
+                    DirectorySpec(
+                        path="System/Applications",
+                    ),
+                ),
+            )
             self.assertEqual(manifest.source_path, manifest_path.resolve())
 
     def test_loads_project_local_manifest_reference(self):
@@ -83,7 +90,14 @@ class CaptainCoreManifestIntegrationTests(unittest.TestCase):
                     manifest = load_resolved_manifest("filesystems/demo")
 
             self.assertEqual(manifest.source_path, manifest_path.resolve())
-            self.assertEqual(manifest.directories, ("Users/demo/Documents",))
+            self.assertEqual(
+                manifest.directories,
+                (
+                    DirectorySpec(
+                        path="Users/demo/Documents",
+                    ),
+                ),
+            )
 
     def test_uses_configured_captain_root(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -6,7 +6,7 @@ from captain_core.models import ManifestHeader
 from captain_core.errors import ManifestError
 from captain_core.manifests import parse_manifest_header
 from captain_stager.manifest import parse_manifest_document
-
+from captain_stager.models import DirectorySpec
 
 class ManifestTests(unittest.TestCase):
 
@@ -44,7 +44,11 @@ class ManifestTests(unittest.TestCase):
 
             self.assertEqual(
                 manifest.directories,
-                ("Users/demo/Documents",),
+                (
+                    DirectorySpec(
+                        path="Users/demo/Documents",
+                    ),
+                ),
             )
             self.assertEqual(
                 manifest.files[0].content,
@@ -189,8 +193,12 @@ class ManifestTests(unittest.TestCase):
             self.assertEqual(
                 manifest.targets["linux"].directories,
                 (
-                    "opt/vibrancy",
-                    "etc/vibrancy",
+                    DirectorySpec(
+                        path="opt/vibrancy",
+                    ),
+                    DirectorySpec(
+                        path="etc/vibrancy",
+                    ),
                 ),
             )
 
@@ -213,3 +221,34 @@ class ManifestTests(unittest.TestCase):
                 manifest.targets["linux"].copies[0].path,
                 "usr/bin/vibrancy",
             )
+
+    def test_parses_directory_mode(self):
+        manifest = parse_manifest_document(
+            {
+                "directories": [
+                    {
+                        "path": "etc/vibrancy",
+                        "mode": "0755",
+                    }
+                ]
+            },
+            header=ManifestHeader(
+                id="test",
+                name="Test Manifest",
+                tool="stager",
+                category="filesystems",
+                schema_version="1.0",
+                manifest_version="1.0.0",
+            ),
+            source_path=Path("/tmp/stager.json"),
+        )
+
+        self.assertEqual(
+            manifest.directories,
+            (
+                DirectorySpec(
+                    path="etc/vibrancy",
+                    mode=0o755,
+                ),
+            ),
+        )

@@ -7,7 +7,7 @@ from captain_core.manifests import parse_manifest_header
 
 from captain_stager.manifest import parse_manifest_document
 from captain_stager.service import select_target
-
+from captain_stager.models import DirectorySpec
 
 class TargetTests(unittest.TestCase):
 
@@ -67,7 +67,11 @@ class TargetTests(unittest.TestCase):
 
             self.assertEqual(
                 selected.directories,
-                ("opt/vibrancy",),
+                (
+                    DirectorySpec(
+                        path="opt/vibrancy",
+                    ),
+                ),
             )
 
             self.assertEqual(

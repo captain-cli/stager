@@ -96,3 +96,39 @@ class ApplyTests(unittest.TestCase):
                 report.results[0].status,
                 "written",
             )
+
+    def test_apply_directory_mode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            root = temporary / "target"
+            manifest = temporary / "m.json"
+
+            manifest.write_text(
+                json.dumps(
+                    manifest_document(
+                        directories=[
+                            {
+                                "path": "etc/vibrancy",
+                                "mode": "0755",
+                            }
+                        ],
+                    )
+                ),
+                encoding="utf-8",
+            )
+
+            report = apply(
+                str(manifest),
+                root_override=str(root),
+            )
+
+            self.assertTrue(report.succeeded)
+
+            mode = stat.S_IMODE(
+                (root / "etc/vibrancy").stat().st_mode
+            )
+
+            self.assertEqual(
+                mode,
+                0o755,
+            )

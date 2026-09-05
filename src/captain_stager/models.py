@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import Any, Literal
 OperationKind = Literal["mkdir", "write", "copy"]
 @dataclass(frozen=True)
+class DirectorySpec:
+    path: str
+    mode: int | None = None
+@dataclass(frozen=True)
 class FileSpec:
     path: str
     content: str
@@ -20,7 +24,7 @@ class CopySpec:
 class TargetSpec:
     default_root: str | None = None
     variables: dict[str, str] = field(default_factory=dict)
-    directories: tuple[str, ...] = ()
+    directories: tuple[DirectorySpec, ...] = ()
     files: tuple[FileSpec, ...] = ()
     copies: tuple[CopySpec, ...] = ()
 @dataclass(frozen=True)
@@ -30,7 +34,7 @@ class Manifest:
     version: str
     default_root: str | None
     variables: dict[str, str]
-    directories: tuple[str, ...]
+    directories: tuple[DirectorySpec, ...]
     files: tuple[FileSpec, ...]
     copies: tuple[CopySpec, ...]
     targets: dict[str, TargetSpec]

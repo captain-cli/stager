@@ -7,7 +7,29 @@ from captain_core.errors import ManifestError
 from captain_core.models import ManifestHeader
 from .paths import validate_relative_path
 from .variables import substitute
-from .models import CopySpec, FileSpec, Manifest, TargetSpec
+from .models import CopySpec, FileSpec, Manifest, TargetSpec, DirectorySpec
+
+
+def parse_directory(value) -> DirectorySpec:
+    if isinstance(value, str):
+        return DirectorySpec(path=value)
+
+    if isinstance(value, dict):
+        path = value.get("path")
+
+        if not isinstance(path, str) or not path:
+            raise ManifestError(
+                'Directory entry must contain a non-empty "path".'
+            )
+
+        return DirectorySpec(
+            path=path,
+            mode=parse_mode(value.get("mode")),
+        )
+
+    raise ManifestError(
+        "Directory entry must be a string or object."
+    )
 
 def parse_mode(value) -> int | None:
     if value is None:
@@ -74,24 +96,24 @@ def parse_manifest_document(
     if not isinstance(raw_directories, list):
         raise ManifestError('"directories" must be an array.')
 
-    directories: list[str] = []
+    directories: list[DirectorySpec] = []
 
     for index, value in enumerate(raw_directories):
-        if not isinstance(value, str):
-            raise ManifestError(
-                f"directories[{index}] must be a string."
-            )
+        directory = parse_directory(value)
 
         substituted = substitute(
-            value,
+            directory.path,
             variables,
-            f"directories[{index}]",
+            f"directories[{index}].path",
         )
 
         directories.append(
-            validate_relative_path(
-                substituted,
-                f"directories[{index}]",
+            DirectorySpec(
+                path=validate_relative_path(
+                    substituted,
+                    f"directories[{index}].path",
+                ),
+                mode=directory.mode,
             )
         )
 
@@ -277,29 +299,27 @@ def parse_manifest_document(
                 "must be an array."
             )
 
-        target_directories: list[str] = []
+        target_directories: list[DirectorySpec] = []
 
         for index, value in enumerate(
                 raw_target_directories
         ):
-            if not isinstance(value, str):
-                raise ManifestError(
-                    f'targets["{target_name}"].'
-                    f'directories[{index}] must be a string.'
-                )
+            directory = parse_directory(value)
 
             substituted = substitute(
-                value,
+                directory.path,
                 target_variables,
                 f'targets["{target_name}"].'
-                f'directories[{index}]',
+                f'directories[{index}].path',
             )
 
             target_directories.append(
-                validate_relative_path(
-                    substituted,
-                    f'targets["{target_name}"].'
-                    f'directories[{index}]',
+                DirectorySpec(
+                    path=validate_relative_path(
+                        substituted,
+                        f'targets["{target_name}"].directories[{index}].path',
+                    ),
+                    mode=directory.mode,
                 )
             )
 
