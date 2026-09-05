@@ -186,3 +186,41 @@ def test_copy_applies_mode(tmp_path):
 
     assert stat.S_IMODE(target.stat().st_mode) == 0o755
     assert report.results[0].status == "written"
+
+def test_plan_uses_explicit_source_root(tmp_path):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+
+    artifact_root = tmp_path / "artifact"
+    artifact_root.mkdir()
+
+    source = artifact_root / "bin" / "example"
+    source.parent.mkdir()
+    source.write_text("example", encoding="utf-8")
+
+    manifest_path = write_manifest(
+        manifest_dir,
+        source="bin/example",
+        destination="usr/bin/example",
+    )
+
+    _, _, operations = plan(
+        manifest_path,
+        source_root_override=str(artifact_root),
+    )
+
+    assert operations[0].source_path == source.resolve()
+
+
+def test_manifest_rejects_copy_source_escape(tmp_path):
+    manifest_path = write_manifest(
+        tmp_path,
+        source="../../outside.txt",
+    )
+
+    try:
+        validate(manifest_path)
+    except Exception as error:
+        assert "copies[0].source" in str(error) or "relative" in str(error).lower()
+    else:
+        raise AssertionError("escaping copy source should be rejected")

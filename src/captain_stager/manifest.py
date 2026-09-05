@@ -71,6 +71,16 @@ def parse_manifest_document(
             '"defaultRoot" must be a non-empty string when provided.'
         )
 
+    source_root = data.get("sourceRoot")
+
+    if source_root is not None and (
+        not isinstance(source_root, str)
+        or not source_root.strip()
+    ):
+        raise ManifestError(
+            '"sourceRoot" must be a non-empty string when provided.'
+        )
+
     raw_variables = data.get("variables", {})
 
     if not isinstance(raw_variables, dict):
@@ -211,10 +221,28 @@ def parse_manifest_document(
                 f"copies[{index}].overwrite must be boolean."
             )
 
+        copy_source_path = validate_relative_path(
+            substitute(
+                source.strip(),
+                variables,
+                f"copies[{index}].source",
+            ),
+            f"copies[{index}].source",
+        )
+
+        destination_path = validate_relative_path(
+            substitute(
+                path.strip(),
+                variables,
+                f"copies[{index}].path",
+            ),
+            f"copies[{index}].path",
+        )
+
         copies.append(
             CopySpec(
-                source=source.strip(),
-                path=path.strip(),
+                source=copy_source_path,
+                path=destination_path,
                 overwrite=overwrite,
                 mode=parse_mode(item.get("mode")),
             )
@@ -247,6 +275,17 @@ def parse_manifest_document(
         ):
             raise ManifestError(
                 f'targets["{target_name}"].defaultRoot '
+                "must be a non-empty string when provided."
+            )
+
+        target_source_root = target_data.get("sourceRoot")
+
+        if target_source_root is not None and (
+            not isinstance(target_source_root, str)
+            or not target_source_root.strip()
+        ):
+            raise ManifestError(
+                f'targets["{target_name}"].sourceRoot '
                 "must be a non-empty string when provided."
             )
 
@@ -443,10 +482,23 @@ def parse_manifest_document(
 
             target_copies.append(
                 CopySpec(
-                    source=source.strip(),
-                    path=substitute(
-                        path.strip(),
-                        target_variables,
+                    source=validate_relative_path(
+                        substitute(
+                            source.strip(),
+                            target_variables,
+                            f'targets["{target_name}"].'
+                            f'copies[{index}].source',
+                        ),
+                        f'targets["{target_name}"].'
+                        f'copies[{index}].source',
+                    ),
+                    path=validate_relative_path(
+                        substitute(
+                            path.strip(),
+                            target_variables,
+                            f'targets["{target_name}"].'
+                            f'copies[{index}].path',
+                        ),
                         f'targets["{target_name}"].'
                         f'copies[{index}].path',
                     ),
@@ -459,6 +511,11 @@ def parse_manifest_document(
             default_root=(
                 target_root.strip()
                 if isinstance(target_root, str)
+                else None
+            ),
+            source_root=(
+                target_source_root.strip()
+                if isinstance(target_source_root, str)
                 else None
             ),
             variables=target_variables,
@@ -482,4 +539,7 @@ def parse_manifest_document(
         tuple(copies),
         targets,
         source_path,
+        source_root.strip()
+        if isinstance(source_root, str)
+        else None,
     )

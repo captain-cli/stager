@@ -23,6 +23,7 @@ class CopySpec:
 @dataclass(frozen=True)
 class TargetSpec:
     default_root: str | None = None
+    source_root: str | None = None
     variables: dict[str, str] = field(default_factory=dict)
     directories: tuple[DirectorySpec, ...] = ()
     files: tuple[FileSpec, ...] = ()
@@ -39,6 +40,7 @@ class Manifest:
     copies: tuple[CopySpec, ...]
     targets: dict[str, TargetSpec]
     source_path: Path
+    source_root: str | None = None
 @dataclass(frozen=True)
 class Operation:
     kind: OperationKind

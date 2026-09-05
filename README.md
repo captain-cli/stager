@@ -177,3 +177,28 @@ Captain
 ```
 
 Stager is the environment staging tool within the Captain ecosystem.
+
+## Explicit source roots
+
+Stager separates the **source filesystem** from the **target filesystem**. Copy sources are resolved inside an explicit source root, while destination paths are resolved inside the target root.
+
+The source root is selected in this order:
+
+1. `--source-root`
+2. `STAGER_SOURCE_ROOT`
+3. manifest `sourceRoot`
+4. the manifest directory for backward compatibility
+
+This lets a source-controlled Stager manifest operate on a Captain artifact without being copied into that artifact:
+
+```bash
+stager plan manifest/stager.linux.json \
+  --target linux \
+  --source-root .captain/artifacts/example
+
+stager apply manifest/stager.linux.json \
+  --target linux \
+  --source-root .captain/artifacts/example
+```
+
+Copy `source` and destination `path` values must remain safe relative references. Attempts to escape their declared roots with values such as `../../...` are rejected during manifest processing/planning.

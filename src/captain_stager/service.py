@@ -31,6 +31,30 @@ def resolve_root(
     return Path(configured_root).expanduser().resolve()
 
 
+def resolve_source_root(
+    manifest: Manifest,
+    source_root_override: str | None,
+) -> Path:
+    configured_root = (
+        source_root_override
+        or os.environ.get("STAGER_SOURCE_ROOT")
+        or manifest.source_root
+    )
+
+    if configured_root:
+        configured_path = Path(configured_root).expanduser()
+
+        if configured_path.is_absolute():
+            return configured_path.resolve()
+
+        return (
+            manifest.source_path.parent
+            / configured_path
+        ).resolve()
+
+    return manifest.source_path.parent.resolve()
+
+
 def load_resolved_manifest(reference: str) -> Manifest:
     resolved = load_tool_manifest(
         reference,
@@ -43,9 +67,10 @@ def load_resolved_manifest(reference: str) -> Manifest:
         source_path=resolved.path,
     )
 
+
 def select_target(
-        manifest: Manifest,
-        target_name: str | None,
+    manifest: Manifest,
+    target_name: str | None,
 ) -> Manifest:
     if target_name is None:
         return manifest
@@ -77,16 +102,19 @@ def select_target(
         target.copies,
         {},
         manifest.source_path,
+        target.source_root,
     )
+
 
 def validate(reference: str) -> Manifest:
     return load_resolved_manifest(reference)
 
 
 def plan(
-        reference: str,
-        root_override: str | None = None,
-        target_name: str | None = None,
+    reference: str,
+    root_override: str | None = None,
+    target_name: str | None = None,
+    source_root_override: str | None = None,
 ):
     manifest = load_resolved_manifest(reference)
 
@@ -100,26 +128,34 @@ def plan(
         root_override,
     )
 
+    source_root = resolve_source_root(
+        manifest,
+        source_root_override,
+    )
+
     operations = build_plan(
         manifest,
         root,
+        source_root,
     )
 
     return manifest, root, operations
 
 
 def apply(
-        reference: str,
-        *,
-        root_override: str | None = None,
-        target_name: str | None = None,
-        dry_run: bool = False,
-        force: bool = False,
+    reference: str,
+    *,
+    root_override: str | None = None,
+    target_name: str | None = None,
+    source_root_override: str | None = None,
+    dry_run: bool = False,
+    force: bool = False,
 ) -> ExecutionReport:
     manifest, root, operations = plan(
         reference,
         root_override,
         target_name,
+        source_root_override,
     )
 
     return execute_plan(

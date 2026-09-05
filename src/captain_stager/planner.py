@@ -1,8 +1,14 @@
 from pathlib import Path
+
 from .models import Manifest, Operation
 from .paths import resolve_inside_root
 
-def build_plan(manifest: Manifest, root: Path) -> list[Operation]:
+
+def build_plan(
+    manifest: Manifest,
+    root: Path,
+    source_root: Path,
+) -> list[Operation]:
     ops = [
         Operation(
             kind="mkdir",
@@ -21,7 +27,7 @@ def build_plan(manifest: Manifest, root: Path) -> list[Operation]:
             content=f.content,
             encoding=f.encoding,
             overwrite=f.overwrite,
-            mode=f.mode
+            mode=f.mode,
         )
         for f in manifest.files
     ]
@@ -32,7 +38,7 @@ def build_plan(manifest: Manifest, root: Path) -> list[Operation]:
             relative_path=c.path,
             target_path=resolve_inside_root(root, c.path),
             overwrite=c.overwrite,
-            source_path=manifest.source_path.parent / c.source,
+            source_path=resolve_inside_root(source_root, c.source),
             mode=c.mode,
         )
         for c in manifest.copies
