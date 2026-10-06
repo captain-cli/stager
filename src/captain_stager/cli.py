@@ -27,7 +27,11 @@ def build_parser():
 
     for name in ("validate", "inspect", "plan", "apply"):
         command = subcommands.add_parser(name)
-        command.add_argument("manifest")
+        command.add_argument("manifest", nargs="?")
+        command.add_argument(
+            "--project",
+            help="Captain project directory; resolves the Captain-owned stager configuration",
+        )
         command.add_argument(
             "--output",
             choices=("text", "json"),
@@ -72,7 +76,7 @@ def main(argv=None):
 
     try:
         if args.command == "validate":
-            manifest = validate(args.manifest)
+            manifest = validate(args.manifest, project_root=args.project)
             payload = {
                 "valid": True,
                 "manifest": manifest_dict(manifest),
@@ -88,7 +92,7 @@ def main(argv=None):
             return 0
 
         if args.command == "inspect":
-            manifest = validate(args.manifest)
+            manifest = validate(args.manifest, project_root=args.project)
             payload = {
                 **manifest_dict(manifest),
                 "directories": [
@@ -136,6 +140,7 @@ def main(argv=None):
                 args.root,
                 target_name=args.target,
                 source_root_override=args.source_root,
+                project_root=args.project,
             )
 
             payload = {
@@ -173,6 +178,7 @@ def main(argv=None):
         if args.command == "apply":
             report = apply(
                 args.manifest,
+                project_root=args.project,
                 root_override=args.root,
                 target_name=args.target,
                 source_root_override=args.source_root,

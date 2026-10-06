@@ -64,22 +64,26 @@ stager apply filesystems/omni-shell-demo \
 
 ## Manifest Resolution
 
-Stager delegates manifest discovery to Captain Core.
+Stager consumes Captain-owned project configuration through Captain Core. A project can keep Stager configuration inline in `manifest.json` or reference a split `manifests/stager.json` file.
 
-Captain Core searches in the following order:
-
-1. Explicit file path
-2. Relative file path
-3. Project-local Captain manifests
-
-```
-captain/
+```text
+project/
+├── manifest.json
 └── manifests/
-    └── stager/
-        └── filesystems/
+    └── stager.json
 ```
 
-Captain Core validates ownership before execution to ensure manifests cannot be consumed by the wrong tool.
+Use project mode with any Stager command:
+
+```bash
+stager validate --project /path/to/project
+stager plan --project /path/to/project --target linux
+stager apply --project /path/to/project --target linux --root /tmp/staged
+```
+
+Captain Core resolves the `stager` configuration, validates Captain ownership and reference containment, and then Stager validates its filesystem semantics. Relative Stager source paths are anchored at the Captain project root regardless of whether the configuration is inline or split.
+
+The positional manifest argument remains supported for legacy standalone Stager manifests during migration. Those references continue to use the existing Captain Core standalone-manifest resolver.
 
 ---
 
