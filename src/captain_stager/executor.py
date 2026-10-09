@@ -3,6 +3,29 @@ import shutil
 
 from .models import ExecutionReport, Operation, OperationResult
 
+def ensure_directories(path: Path, root: Path) -> None:
+    """Create missing directories with deterministic 0755 permissions."""
+    path = path.absolute()
+    root = root.absolute()
+
+    if not path.is_relative_to(root):
+        raise ValueError(f"Directory outside staging root: {path}")
+
+    missing = []
+    current = path
+
+    while not current.exists():
+        missing.append(current)
+        if current == current.parent:
+            break
+        current = current.parent
+
+    for directory in reversed(missing):
+        directory.mkdir(mode=0o755)
+        directory.chmod(0o755)
+
+    if not path.is_dir():
+        raise NotADirectoryError(path)
 
 def execute_plan(
         manifest_id: str,
@@ -15,7 +38,7 @@ def execute_plan(
     report = ExecutionReport(manifest_id, str(root), dry_run)
 
     if not dry_run:
-        root.mkdir(parents=True, exist_ok=True)
+        ensure_directories(root, root)
 
     for op in operations:
         try:
@@ -31,10 +54,7 @@ def execute_plan(
                 continue
 
             if op.kind == "mkdir":
-                op.target_path.mkdir(
-                    parents=True,
-                    exist_ok=True,
-                )
+                ensure_directories(op.target_path, root)
 
                 if op.mode is not None:
                     op.target_path.chmod(op.mode)
@@ -50,7 +70,7 @@ def execute_plan(
                 continue
 
             if op.kind == "write":
-                op.target_path.parent.mkdir(parents=True, exist_ok=True)
+                ensure_directories(op.target_path.parent, root)
 
                 if op.target_path.exists() and not (force or op.overwrite):
                     report.results.append(
@@ -120,10 +140,7 @@ def execute_plan(
                     continue
 
                 if op.source_path.is_file():
-                    op.target_path.parent.mkdir(
-                        parents=True,
-                        exist_ok=True,
-                    )
+                    ensure_directories(op.target_path.parent, root)
 
                     shutil.copy2(
                         op.source_path,
@@ -134,10 +151,7 @@ def execute_plan(
                     if op.target_path.exists():
                         shutil.rmtree(op.target_path)
 
-                    op.target_path.parent.mkdir(
-                        parents=True,
-                        exist_ok=True,
-                    )
+                    ensure_directories(op.target_path.parent, root)
 
                     shutil.copytree(
                         op.source_path,

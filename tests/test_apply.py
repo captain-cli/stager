@@ -1,13 +1,13 @@
 import json
 import tempfile
 import unittest
+import os
 import stat
 from pathlib import Path
 
 from captain_stager.executor import execute_plan
 from captain_stager.models import Operation
 from captain_stager.service import apply
-
 
 def manifest_document(*, directories, files=None):
     return {
@@ -25,6 +25,41 @@ def manifest_document(*, directories, files=None):
 
 
 class ApplyTests(unittest.TestCase):
+
+    def test_implicit_directories_ignore_permissive_umask(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "output"
+            target = root / "usr/lib/vibrancy/test.txt"
+
+            op = Operation(
+                kind="write",
+                relative_path="usr/lib/vibrancy/test.txt",
+                target_path=target,
+                content="test",
+            )
+
+            previous_umask = os.umask(0o002)
+            try:
+                report = execute_plan("permissions", root, [op])
+            finally:
+                os.umask(previous_umask)
+
+            self.assertTrue(report.succeeded)
+
+            for relative in (
+                    ".",
+                    "usr",
+                    "usr/lib",
+                    "usr/lib/vibrancy",
+            ):
+                path = root / relative
+
+                self.assertEqual(
+                    stat.S_IMODE(path.stat().st_mode),
+                    0o755,
+                    f"Incorrect mode: {relative}",
+                )
+
     def test_apply(self):
         with tempfile.TemporaryDirectory() as directory:
             temporary = Path(directory)

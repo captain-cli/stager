@@ -224,3 +224,30 @@ def test_manifest_rejects_copy_source_escape(tmp_path):
         assert "copies[0].source" in str(error) or "relative" in str(error).lower()
     else:
         raise AssertionError("escaping copy source should be rejected")
+
+def test_recursive_copy_preserves_source_directory_modes(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir(mode=0o775)
+    source.chmod(0o775)
+
+    nested = source / "plugins"
+    nested.mkdir(mode=0o775)
+    nested.chmod(0o775)
+
+    (nested / "plugin.so").write_text("test")
+
+    root = tmp_path / "output"
+    target = root / "usr/lib/vibrancy"
+
+    op = Operation(
+        kind="copy",
+        relative_path="usr/lib/vibrancy",
+        target_path=target,
+        source_path=source,
+    )
+
+    report = execute_plan("permissions", root, [op])
+
+    assert report.succeeded
+    assert stat.S_IMODE(target.stat().st_mode) == 0o775
+    assert stat.S_IMODE((target / "plugins").stat().st_mode) == 0o775
