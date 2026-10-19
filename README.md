@@ -41,23 +41,142 @@ pip install -e .
 
 ## Quick Start
 
-Validate a manifest.
+Stager turns a declarative manifest into a repeatable filesystem layout.
 
-```bash
-stager validate filesystems/omni-shell-demo
+### 1. Create a manifest
+
+Save this as `stager.json`:
+
+```json
+{
+  "header": {
+    "id": "my-app",
+    "name": "My Application",
+    "tool": "stager",
+    "category": "filesystems",
+    "schemaVersion": "1.0",
+    "manifestVersion": "1.0.0"
+  },
+  "defaultRoot": "./runtime/my-app",
+  "directories": [
+    "config",
+    "data",
+    "logs"
+  ],
+  "files": [
+    {
+      "path": "config/README.txt",
+      "content": "Configuration for My Application."
+    }
+  ]
+}
 ```
 
-Preview the operations.
+### 2. Validate it
 
 ```bash
-stager apply filesystems/omni-shell-demo --dry-run
+stager validate stager.json
 ```
 
-Apply the manifest.
+### 3. Preview the filesystem
+
+Use a dry run before changing the filesystem:
 
 ```bash
-stager apply filesystems/omni-shell-demo \
-    --root /opt/omni-fs
+stager apply stager.json --dry-run
+```
+
+### 4. Stage it
+
+```bash
+stager apply stager.json
+```
+
+The manifest above produces:
+
+```text
+runtime/my-app/
+├── config/
+│   └── README.txt
+├── data/
+└── logs/
+```
+
+**One manifest. Any environment.**
+
+---
+
+## Sample Manifests
+
+### Variables
+
+Stager supports variable substitution, allowing the same manifest to describe reusable layouts.
+
+```json
+{
+  "header": {
+    "id": "user-workspace",
+    "name": "User Workspace",
+    "tool": "stager",
+    "category": "filesystems",
+    "schemaVersion": "1.0",
+    "manifestVersion": "1.0.0"
+  },
+  "defaultRoot": "./runtime/workspace",
+  "variables": {
+    "user": "demo"
+  },
+  "directories": [
+    "Users/${user}/Desktop",
+    "Users/${user}/Documents",
+    "Users/${user}/Downloads"
+  ],
+  "files": [
+    {
+      "path": "Users/${user}/Documents/README.txt",
+      "content": "Workspace prepared by Captain Stager."
+    }
+  ]
+}
+```
+
+This produces:
+
+```text
+runtime/workspace/
+└── Users/
+    └── demo/
+        ├── Desktop/
+        ├── Documents/
+        │   └── README.txt
+        └── Downloads/
+```
+
+### Choose a target root
+
+A manifest can provide a default location while the CLI selects a different root when needed:
+
+```bash
+stager apply stager.json --root /tmp/my-app
+```
+
+The manifest stays the same. Only the destination changes.
+
+### Included Examples
+
+The repository includes larger working examples:
+
+| Manifest | Demonstrates |
+| --- | --- |
+| [`manifests/omni-fs.json`](./manifests/omni-fs.json) | Variables, directory trees, generated files, and a project-local runtime root |
+| [`manifests/omni-shell-site.json`](./manifests/omni-shell-site.json) | A larger website/filesystem layout with site, configuration, logs, backups, and user storage |
+
+Try one directly:
+
+```bash
+stager validate manifests/omni-fs.json
+stager apply manifests/omni-fs.json --dry-run
+stager apply manifests/omni-fs.json --root /tmp/omni-fs
 ```
 
 ---
