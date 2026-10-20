@@ -1,15 +1,17 @@
-# Captain Stager
+# Stager
 
 <p align="center">
-    <img src="./assets/stager-banner.png" alt="Captain - Captain's Stager" width="100%" />
+    <img src="./assets/stager-banner.png"
+         alt="Stager — One Manifest. Any Environment."
+         width="100%" />
 </p>
 
-Stop rebuilding the same environment. Describe it once. Stage it anywhere.
+**One manifest. Any environment.**
 
-**Manifest-driven environment staging for the Captain ecosystem.**
+Manifest-driven filesystem staging for the Captain ecosystem.
 
-Captain Stager prepares repeatable filesystem layouts from declarative manifests. Rather than writing setup scripts for every project, Stager consumes manifests and produces consistent environments that can be recreated anywhere.
-
+Describe your filesystem once. Validate it, preview it,
+and stage it wherever you need it.
 ---
 
 ## Features
